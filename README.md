@@ -5,4 +5,5 @@
     3、当前图片不在内存缓存时使用默认图片占位。
     
     不足：内存缓存设计不够完善，在上滑返回过多之后会出现轻微卡顿。
-          由于RecyclerView的自带动画，用来写瀑布流感觉不如用其他自定义控件方便...
+    使用RecyclerView写瀑布流虽然十分的方便，不过由于RecyclerView的自带动画，卡顿的处理变得更加困难。
+![Aaron Swartz](https://github.com/xiehaochn/WaterfallDemo/raw/master/art/device-2015-12-30-191642.png)
