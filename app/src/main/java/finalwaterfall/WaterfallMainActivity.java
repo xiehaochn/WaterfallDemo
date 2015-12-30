@@ -65,10 +65,10 @@ public class WaterfallMainActivity extends AppCompatActivity {
         spanWidth = display.getWidth() / columsCount;
         //初始化Volley RequestQueue实例
         requestqueue=MyVolley.newRequestQueue(context,diskCacheSize);
-        //设置内存缓存大小
-        setLruCacheSize();
+        //设置内存缓存
+        setLruCache();
         //初始化图片缓存
-        refreshLraCache(initpageSize);
+        refreshLruCache(initpageSize);
         adapter = new WaterfallRecyclerAdapter(context, itemCount,requestqueue,spanWidth);
         recyclerView.setAdapter(adapter);
         adapter.setOnItemClickListener(new WaterfallRecyclerAdapter.OnItemClickListener() {
@@ -93,10 +93,10 @@ public class WaterfallMainActivity extends AppCompatActivity {
                 //判断是否停止滚动
                 if(newState==RecyclerView.SCROLL_STATE_IDLE) {
                         //判断当前加载是否完成
-                        if (allLoaded == true) {
+                        if (allLoaded) {
                             //得到每一列最后一个可见的元素的Position
                             int[] lastvisibalItem = layoutManager.findLastVisibleItemPositions(null);
-                            int lastposition = 0;
+                            int lastposition;
                             if (columsCount != 1) {
                                 lastposition = Math.max(lastvisibalItem[0], lastvisibalItem[1]);
                                 for (int i = 2; i < columsCount; i++) {
@@ -110,13 +110,13 @@ public class WaterfallMainActivity extends AppCompatActivity {
                                 //当最后一个可见元素的Position与加载的元素总数相等时，判断滑到底部，更新缓存、加载更多
                                 if ((lastposition + 11) <= ImageURLs.imageUrls.length) {
                                     //当还剩余十个以上元素待加载时，加载10个元素
-                                    refreshLraCache(refreshSize);
+                                    refreshLruCache(refreshSize);
                                     Toast.makeText(context, "Loading...", Toast.LENGTH_SHORT).show();
                                 } else {
                                     if(!noMore) {
                                         //当剩余元素不足十个时，加载剩余元素并提示
                                         int remaining = ImageURLs.imageUrls.length - lastposition - 1;
-                                        refreshLraCache(remaining);
+                                        refreshLruCache(remaining);
                                         Toast.makeText(context, "Loading...", Toast.LENGTH_SHORT).show();
                                         //没有更多图片
                                         noMore = true;
@@ -136,7 +136,7 @@ public class WaterfallMainActivity extends AppCompatActivity {
             }
         });
     }
-    private void refreshLraCache(final int refreshNum) {
+    private void refreshLruCache(final int refreshNum) {
         //加载状态设置为未完成
         Log.d("WaterFall","refresh start");
         allLoaded=false;
@@ -180,7 +180,7 @@ public class WaterfallMainActivity extends AppCompatActivity {
 
     }
 
-    private void setLruCacheSize() {
+    private void setLruCache() {
         //获取最大缓存大小，单位M
         int maxCacheSize= (int) (Runtime.getRuntime().maxMemory()/1024);
         cacheSize=maxCacheSize/8;
@@ -191,40 +191,5 @@ public class WaterfallMainActivity extends AppCompatActivity {
                 return value.getByteCount()/1024;
             }
         };
-    }
-
-    private void initBitmapLru() {
-        requestqueue= Volley.newRequestQueue(this);
-        for(int i=0;i<initpageSize;i++){
-            final int finalI = i;
-            requestqueue.add(new ImageRequest(ImageURLs.imageUrls[i], new Response.Listener<Bitmap>() {
-                @Override
-                public void onResponse(Bitmap response) {
-                    //将返回的Bitmap加入内存缓存
-                    cache.put(ImageURLs.imageUrls[finalI],response);
-                    //将返回图片大小存入HashMap
-                    ImageSize imageSize=new ImageSize(response.getWidth(),response.getHeight());
-                    sizeHashMap.put(ImageURLs.imageUrls[finalI],imageSize);
-                    //所有任务完成后将缓存传入Adapter并更新视图
-                    taskCount++;
-                    progress= (int) ((float)taskCount/(initpageSize-1)*100);
-                    progressBar.setProgress(progress);
-                    if(taskCount==initpageSize-1) {
-                        adapter.setLruCache(cache);
-                        adapter.notifyDataSetChanged();
-                        //初始化加载完成后设置recyclerview为可见，progressbar为不可见
-                        progressBar.setVisibility(View.GONE);
-                        progress=0;
-                        recyclerView.setVisibility(View.VISIBLE);
-                        taskCount=0;
-                        //将加载状态设置为全部加载完成
-                        allLoaded=true;
-                    }
-                    Log.d("WaterFall","Task: "+finalI+" completed");
-                    Log.d("WaterFall","remaining memorysize is "+(cacheSize-cache.size()));
-                }
-            },spanWidth,0, ImageView.ScaleType.CENTER_CROP,null,null));
-        }
-        itemCount=initpageSize;
     }
 }
