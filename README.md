@@ -8,4 +8,5 @@
     使用RecyclerView写瀑布流虽然十分的方便，不过由于RecyclerView的自带动画，卡顿的处理变得更加困难。
     图好像截得有点大= =
     不过也没人看，就这样吧~
+![Aaron Swartz](https://github.com/xiehaochn/WaterfallDemo/blob/master/art/ScreenRecorder-1280x720-1451530953626_699-1006.gif)
 ![Aaron Swartz](https://github.com/xiehaochn/WaterfallDemo/raw/master/art/device-2015-12-30-191642.png)
